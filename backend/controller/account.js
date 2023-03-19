@@ -176,8 +176,6 @@ const updateProfileImage = async (req, res, next) => {
 }
 
 
-
-
 module.exports = {
   userRegister,
   userLogin,
