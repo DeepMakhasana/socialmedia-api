@@ -46,6 +46,12 @@ const accountSchema = new Schema(
       enum: ["public", "private"],
       default: "public",
     },
+    post: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "post",
+      },
+    ],
     follower: [
       {
         type: Schema.Types.ObjectId,

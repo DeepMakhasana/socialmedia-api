@@ -176,11 +176,69 @@ const updateProfileImage = async (req, res, next) => {
 }
 
 
+// ===========================
+// Follow and Unfollow
+// ===========================
+const followAndUnfollow = async (req, res, next) => {
+  try {
+    const token = req.cookies.token;
+    const accountDetails = verifyToken(token);
+    const myId = accountDetails._id;
+    const followerId = req.params.id;
+
+    const myAccount = await Account.findOne({ _id: myId });
+    const FollowerAccount = await Account.findOne({ _id: followerId });
+
+    if(!myAccount || !FollowerAccount){
+      return res.status(400).json({
+        success: false,
+        message: "User Not exist!"
+      })
+    }
+
+    if(myAccount.following.includes(followerId)){
+      const myIndex = myAccount.following.indexOf(followerId);
+      myAccount.following.splice(myIndex, 1);
+
+      const followerIndex = FollowerAccount.follower.indexOf(myId);
+      FollowerAccount.follower.splice(followerIndex, 1);
+
+      await myAccount.save();
+      await FollowerAccount.save();
+
+      return res.status(200).json({
+        success: true,
+        message: "User Unfollowed.",
+        myId: myId,
+        followerId: followerId
+      })
+    }else{
+      myAccount.following.push(followerId);
+      FollowerAccount.follower.push(myId);
+
+      await myAccount.save();
+      await FollowerAccount.save();
+
+      res.status(200).json({
+        success: true,
+        message: "User followed.",
+        myId: myId,
+        followerId: followerId
+      })
+    }
+
+  } catch (error) {
+    next(new errorHandler(error.message, 400));
+  }
+}
+
+
 module.exports = {
   userRegister,
   userLogin,
   userDetail,
   deleteUser,
   updateUser,
-  updateProfileImage
+  updateProfileImage,
+  followAndUnfollow
 };

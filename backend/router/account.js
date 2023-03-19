@@ -8,6 +8,7 @@ const {
   deleteUser,
   updateUser,
   updateProfileImage,
+  followAndUnfollow
 } = require("../controller/account");
 
 
@@ -30,5 +31,6 @@ router.route("/login").post(userLogin);
 router.route("/:username").get(userDetail);
 router.route("/").delete(deleteUser).patch(updateUser);
 router.post("/profile-image",  upload.single("profileImage"), updateProfileImage);
+router.route("/follow/:id").patch(followAndUnfollow);
 
 module.exports = router;
