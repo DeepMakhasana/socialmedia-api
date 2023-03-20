@@ -3,7 +3,12 @@ const multer = require("multer");
 const router = express.Router();
 const {
   createPost,
-  createComment
+  getPostByID,
+  createComment,
+  getPostByFollowerAndFollowing,
+  updatePost,
+  deletePost,
+  updateLikeUnlike
 } = require("../controller/post");
 
 
@@ -22,6 +27,9 @@ const upload = multer({ storage: storage });
 
 // router
 router.post("/",  upload.single("postImage"), createPost);
+router.route("/:postId").get(getPostByID).patch(updatePost).delete(deletePost);
 router.patch("/comment/:postId", createComment);
+router.get("/", getPostByFollowerAndFollowing);
+router.patch("/like/:postId", updateLikeUnlike);
 
 module.exports = router;

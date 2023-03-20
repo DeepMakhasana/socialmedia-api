@@ -1,5 +1,6 @@
 const { Schema, model } = require("mongoose");
 const { randomBytes, createHmac } = require("crypto");
+const bcrypt = require("bcrypt");
 
 const accountSchema = new Schema(
   {
@@ -23,9 +24,6 @@ const accountSchema = new Schema(
       unique: [true, "This mobile number is already exist."],
       minLength: [10, "Enter valid mobile number."],
       maxLength: [10, "Enter valid mobile number."],
-    },
-    salt: {
-      type: String,
     },
     password: {
       type: String,
@@ -77,14 +75,7 @@ accountSchema.pre("save", async function (next) {
     next();
   }
 
-  const salt = randomBytes(16).toString();
-  const createHashPassword = createHmac("sha256", salt)
-    .update(user.password)
-    .digest("hex");
-
-  this.salt = salt;
-  this.password = createHashPassword;
-
+  this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
@@ -95,14 +86,9 @@ accountSchema.static("checkPassword", async function (email, password) {
     return { message: "User is not exist." };
   }
 
-  const salt = user.salt;
-  const hashPassword = user.password;
+  const matchPassword = await bcrypt.compare(password, user.password);
 
-  const hashPasswordUserProvide = await createHmac("sha256", salt)
-    .update(password)
-    .digest("hex");
-
-  if (hashPassword === hashPasswordUserProvide) {
+  if (matchPassword) {
     const tokenData = {
       _id: user._id,
       name: user.name,

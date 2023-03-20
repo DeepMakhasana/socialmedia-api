@@ -93,6 +93,8 @@ const deleteUser = async (req, res, next) => {
     const accountDetails = verifyToken(token);
     const accountDeleteId = accountDetails._id;
 
+    // if(!token) return new errorHandler("First Login please.", 400);
+
     const deleteAccount = await Account.findByIdAndDelete(accountDeleteId);
 
     if (!deleteAccount) {
