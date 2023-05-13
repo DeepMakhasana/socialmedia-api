@@ -8,7 +8,7 @@ Welcome to the documentation for Social media. This API allows you to create use
 
 ### Base URL
 
-The base URL for all API endpoints is: https://api.example.com/api/v1
+The base URL for all API endpoints is: https://social-media-backend-nkz6.onrender.com/api/v1/
 
 # Endpoints for User
 
