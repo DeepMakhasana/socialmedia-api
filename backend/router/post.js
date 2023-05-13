@@ -5,12 +5,12 @@ const {
   createPost,
   getPostByID,
   createComment,
+  deleteComment,
   getPostByFollowerAndFollowing,
   updatePost,
   deletePost,
-  updateLikeUnlike
+  updateLikeUnlike,
 } = require("../controller/post");
-
 
 // multer setup
 const storage = multer.diskStorage({
@@ -24,12 +24,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-
 // router
-router.post("/",  upload.single("postImage"), createPost);
-router.route("/:postId").get(getPostByID).patch(updatePost).delete(deletePost);
-router.patch("/comment/:postId", createComment);
+router.post("/", upload.single("postImage"), createPost);
+router.route("/:postId").get(getPostByID).put(updatePost).delete(deletePost);
+router.route("/comment/:postId").put(createComment);
+router.route("/comment/:postId/:commentId").delete(deleteComment);
 router.get("/", getPostByFollowerAndFollowing);
-router.patch("/like/:postId", updateLikeUnlike);
+router.put("/like/:postId", updateLikeUnlike);
 
 module.exports = router;

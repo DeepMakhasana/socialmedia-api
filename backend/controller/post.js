@@ -8,6 +8,8 @@ const errorHandler = require("../util/errorHandler");
 // ======================
 const createPost = async (req, res, next) => {
   try {
+    if (!req.cookies.token)
+      return next(new errorHandler("First Login please.", 400));
     const { caption, location } = req.body;
 
     if (!caption) {
@@ -101,6 +103,8 @@ const getPostByID = async (req, res, next) => {
 // ======================
 const deletePost = async (req, res, next) => {
   try {
+    if (!req.cookies.token)
+      return next(new errorHandler("First Login please.", 400));
     const postId = req.params.postId;
     const token = req.cookies.token;
     const accountDetails = verifyToken(token);
@@ -139,6 +143,8 @@ const deletePost = async (req, res, next) => {
 // ======================
 const createComment = async (req, res, next) => {
   try {
+    if (!req.cookies.token)
+      return next(new errorHandler("First Login please.", 400));
     const postId = req.params.postId;
     const token = req.cookies.token;
     const accountDetails = verifyToken(token);
@@ -170,22 +176,84 @@ const createComment = async (req, res, next) => {
 };
 
 // ======================
+// Delete comment
+// ======================
+const deleteComment = async (req, res, next) => {
+  try {
+    if (!req.cookies.token)
+      return next(new errorHandler("First Login please.", 400));
+    const postId = req.params.postId;
+    const commentId = req.params.commentId;
+    const token = req.cookies.token;
+    const accountDetails = verifyToken(token);
+    const myId = accountDetails._id;
+
+    const post = await Post.findOne({ _id: postId });
+
+    // which person delete which comment that decide?
+    if (post.createdBy.toString() === myId) {
+      // owner comment delete
+      for (let i = 0; i < post.comment.length; i++) {
+        const element = post.comment[i];
+        if (element._id.toString() === commentId) {
+          post.comment.splice(i, 1);
+          await post.save();
+          return res.status(200).json({
+            success: true,
+            message: "comment delete successfully by owner.",
+          });
+        }
+      }
+    } else {
+      // follower comment delete
+      for (let i = 0; i < post.comment.length; i++) {
+        const element = post.comment[i];
+        if (element._id.toString() === commentId) {
+          if (element.commentBy.toString() === myId) {
+            post.comment.splice(i, 1);
+            await post.save();
+            return res.status(200).json({
+              success: true,
+              message: "comment delete successfully by anther person.",
+            });
+          } else {
+            return res.status(400).json({
+              success: false,
+              message: "Unauthorize.",
+            });
+          }
+        }
+      }
+    }
+  } catch (error) {
+    return next(new errorHandler(error.message, 400));
+  }
+};
+
+// ======================
 // Get post by following & follower
 // ======================
 const getPostByFollowerAndFollowing = async (req, res, next) => {
   try {
+    if (!req.cookies.token)
+      return next(new errorHandler("First Login please.", 400));
     const token = req.cookies.token;
     const accountDetails = verifyToken(token);
     const myId = accountDetails._id;
 
     const myFollowerAndFollowing = await Account.findById(myId);
 
-    if (!myFollowerAndFollowing) return next(new errorHandler("some thing wait wrong!", 400));
+    if (!myFollowerAndFollowing)
+      return next(new errorHandler("some thing wait wrong!", 400));
 
     const FollowerAndFollowingPostId = [
+      myId,
       ...myFollowerAndFollowing.follower,
       ...myFollowerAndFollowing.following,
     ];
+
+    // TODO
+    // find unique value form FollowerAndFollowingPostId
 
     const getPostByFollowerAndFollowing = await Post.find({
       createdBy: { $in: FollowerAndFollowingPostId },
@@ -212,13 +280,16 @@ const getPostByFollowerAndFollowing = async (req, res, next) => {
 // ======================
 const updateLikeUnlike = async (req, res, next) => {
   try {
+    if (!req.cookies.token)
+      return next(new errorHandler("First Login please.", 400));
     const postId = req.params.postId;
     const token = req.cookies.token;
     const accountDetails = verifyToken(token);
     const myId = accountDetails._id;
 
     const updateLikeUnlike = await Post.findOne({ _id: postId });
-    if(!updateLikeUnlike) return next(new errorHandler("Post not found!", 400)); 
+    if (!updateLikeUnlike)
+      return next(new errorHandler("Post not found!", 400));
 
     if (updateLikeUnlike.like.includes(myId)) {
       const index = updateLikeUnlike.like.indexOf(myId);
@@ -240,7 +311,6 @@ const updateLikeUnlike = async (req, res, next) => {
         postId,
       });
     }
-
   } catch (error) {
     next(new errorHandler(error.message, 400));
   }
@@ -250,6 +320,7 @@ module.exports = {
   createPost,
   getPostByID,
   createComment,
+  deleteComment,
   getPostByFollowerAndFollowing,
   updatePost,
   deletePost,

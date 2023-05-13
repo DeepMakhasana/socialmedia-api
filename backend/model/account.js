@@ -1,5 +1,5 @@
 const { Schema, model } = require("mongoose");
-const { randomBytes, createHmac } = require("crypto");
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 
 const accountSchema = new Schema(
@@ -62,6 +62,12 @@ const accountSchema = new Schema(
         ref: "account",
       },
     ],
+    resetPasswordToken: {
+      type: String
+    },
+    resetTokenExpire: {
+      type: Date
+    }
   },
   {
     timestamps: true,
@@ -102,6 +108,15 @@ accountSchema.static("checkPassword", async function (email, password) {
     return { message: "Invalid Password." };
   }
 });
+
+accountSchema.methods.getResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(20).toString("hex");
+
+  this.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  this.resetTokenExpire = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
+}
 
 const Account = model("account", accountSchema);
 

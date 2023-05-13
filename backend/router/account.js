@@ -5,12 +5,14 @@ const {
   userRegister,
   userLogin,
   userDetail,
+  myDetail,
   deleteUser,
   updateUser,
   updateProfileImage,
-  followAndUnfollow
+  followAndUnfollow,
+  forgotPassword,
+  resetPassword,
 } = require("../controller/account");
-
 
 // multer setup
 const storage = multer.diskStorage({
@@ -24,13 +26,25 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-
 // router
 router.route("/register").post(userRegister);
+
 router.route("/login").post(userLogin);
+
 router.route("/:username").get(userDetail);
-router.route("/").delete(deleteUser).patch(updateUser);
-router.post("/profile-image",  upload.single("profileImage"), updateProfileImage);
-router.route("/follow/:id").patch(followAndUnfollow);
+
+router.route("/").get(myDetail).put(updateUser).delete(deleteUser);
+
+router.patch(
+  "/profile-image",
+  upload.single("profileImage"),
+  updateProfileImage
+);
+
+router.route("/follow/:id").put(followAndUnfollow);
+
+router.route("/forgot/password").post(forgotPassword);
+
+router.route("/password/reset/:token").put(resetPassword);
 
 module.exports = router;
