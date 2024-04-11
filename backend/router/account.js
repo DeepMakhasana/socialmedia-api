@@ -17,7 +17,7 @@ const {
 // multer setup
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "../socialmedia/backend/upload/profileImage");
+    cb(null, "backend/upload/postImage");
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
@@ -35,11 +35,7 @@ router.route("/:username").get(userDetail);
 
 router.route("/").get(myDetail).put(updateUser).delete(deleteUser);
 
-router.patch(
-  "/profile-image",
-  upload.single("profileImage"),
-  updateProfileImage
-);
+router.patch("/profile-image", upload.single("profileImage"), updateProfileImage);
 
 router.route("/follow/:id").put(followAndUnfollow);
 
